@@ -34,6 +34,17 @@ app.get("/wakeup", (req, res) => {
 
 // Get JWT access token
 app.get("/get/access-token", async (req, res) => {
+    //get and set light status 
+    const light_status = req.query['light-status'];
+    
+    if(light_status == true){
+        lightStatus = {
+            status: light_status,
+            time: Date.now()
+        }
+    }
+    
+    //send token
     const access_token_data = await refreshToken();
     res.status(200).json({ 'access_token': access_token_data.access_token });
 });
