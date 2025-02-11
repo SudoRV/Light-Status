@@ -37,13 +37,15 @@ app.get("/get/access-token", async (req, res) => {
     //get and set light status 
     const light_status = req.query['light-status'];
     
-    if(light_status == true){
+    if(light_status == "On" || light_status == "Off"){
         lightStatus = {
             status: light_status,
             time: Date.now()
         }
     }
     
+    console.log(`light status updated to : ${light_status}`)
+       
     //send token
     const access_token_data = await refreshToken();
     res.status(200).json({ 'access_token': access_token_data.access_token });
