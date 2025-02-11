@@ -48,7 +48,7 @@ app.get("/get/access-token", async (req, res) => {
        
     //send token
     const access_token_data = await refreshToken();
-    res.status(200).json({ 'access_token': access_token_data.access_token });
+    res.status(200).json({ 'access_token': access_token_data.access_token, 'server_startime':serverStartTime });
 });
 
 // Set light status
