@@ -60,6 +60,9 @@ app.post("/push", async (req, res) => {
                 'feed_time': feedTime.toString(),
                 'server_status': 'Awake',
                 'server_startime': serverStartTime.toString()                 
+            },
+            android:{
+                'priority':'high'
             }
         }
     }  
