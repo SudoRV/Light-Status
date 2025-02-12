@@ -39,7 +39,7 @@ app.get("/wakeup", (req, res) => {
 //push notification to device directly server to server
 app.post("/push", async (req, res) => {    
     const { light_status, feed_time } = req.body;
-    const lightStatus = light_status ? "Light Chale Gayi Bro" : "Light Aagyi Bro";
+    const nessage = light_status ? "Light Chale Gayi Bro" : "Light Aagyi Bro";
     const feedTime = Date.now();
     const access_token_data = await refreshToken();
     
@@ -53,10 +53,10 @@ app.post("/push", async (req, res) => {
             token: env.DEVICE_TOKEN,
             notification: {
                 title: "ESP8266",
-                body: lightStatus,              
+                body: message,              
             },
             data:{
-                'light_status': lightStatus,
+                'light_status': lightStatus.status,
                 'feed_time': feedTime,
                 'server_status': 'Awake',
                 'server_startime': serverStartTime.toString()                 
