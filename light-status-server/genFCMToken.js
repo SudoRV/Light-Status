@@ -51,7 +51,7 @@ app.post("/push", async (req, res) => {
             },
             data:{
                 'light_status': lightStatus,
-                'feed_time': feed_time,
+                'feed_time': feed_time.toString(),
                 'server_status': 'Awake',
                 'server_startime': serverStartTime.toString()                 
             }
@@ -59,7 +59,7 @@ app.post("/push", async (req, res) => {
     }  
     
     const { http_code, response } = await pushMsg(fcm_url, access_token_data.access_token, payload);
-    res.json(http_code).json(response);
+    res.status(http_code).json(response);
 })
 
 
@@ -198,7 +198,8 @@ function formatDuration(seconds) {
 
 // Send Push Notification
 async function pushMsg(url, accessToken, payload) {
-    console.log(url, accessToken, payload)
+    console.log("pushing notification");
+    console.log(payload);
     try {
         const response = await axios.post(url, payload, {
             headers: {
