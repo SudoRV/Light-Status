@@ -9,6 +9,7 @@ const env = process.env;
 const app = express();
 app.use(express.json());
 
+const fcm_url = `https://fcm.googleapis.com/v1/projects/${env.PROJECT_ID}/messages:send`;
 const TOKEN_FILE = path.join(__dirname, 'access_token.json');
 let isTokenRefreshing = false;
 
@@ -16,8 +17,8 @@ let isTokenRefreshing = false;
 const serverStartTime = Date.now();
 // Light status tracking
 let lightStatus = {
-    status: "Off", // Default status
-    time: Date.now() // Timestamp of the last status change
+    status: "Off", 
+    time: Date.now()
 };
 
 // Service account
@@ -50,6 +51,31 @@ app.get("/get/access-token", async (req, res) => {
     const access_token_data = await refreshToken();
     res.status(200).json({ 'access_token': access_token_data.access_token, 'server_startime':serverStartTime, 'feed_time': lightStatus.time, 'light_status': lightStatus.status });
 });
+
+//push notification to device directly server to server
+app.get("/push", async (req, res) => {    
+    const { light_status, feed_time } = req.body;
+    const lightStatus = light_status ? "Light Aagyi Bro" : "Light Chale Gayi Bro";
+    const access_token_data = await refreshToken();
+  
+    const payload = { 
+        message:{
+            token: env.DEVICE_TOKEN,
+            notification: {
+                title: "ESP8266",
+                body: lightStatus,              
+            },
+            data:{
+                'light_status': lightStatus,
+                'feed_time': feed_time,
+                'server_status': 'Awake',
+                'server_startime': serverStartTime.toString()                 
+            }
+        }
+    }  
+    
+    await pushMsg(fcm_url, access_token_data.access_token, payload);
+})
 
 // Set light status
 app.post("/light-status", (req, res) => {
@@ -197,5 +223,24 @@ function formatDuration(seconds) {
         const mins = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
         return `${String(days).padStart(3, '0')}:${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+}
+
+
+
+// Send Push Notification
+async function pushMsg(url, accessToken, payload) {
+    console.log(url, accessToken, payload)
+    try {
+        const response = await axios.post(url, payload, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('Notification sent successfully:', response.data);
+    } catch (error) {
+        console.error('FCM Error:', error.response.data);
     }
 }

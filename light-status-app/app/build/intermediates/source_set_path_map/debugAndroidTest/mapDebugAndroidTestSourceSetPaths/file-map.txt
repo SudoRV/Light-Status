@@ -1,5 +1,0 @@
-com.example.lightstatus.test.app-core-1.6.1-0 C:\Users\PC\.gradle\caches\transforms-4\284de56348d25a5235434cfd4536ff9c\transformed\core-1.6.1\res
-com.example.lightstatus.test.app-androidTest-1 C:\Users\PC\Desktop\projects\light-status\light-status-app\app\build\generated\res\resValues\androidTest\debug
-com.example.lightstatus.test.app-mergeDebugAndroidTestResources-2 C:\Users\PC\Desktop\projects\light-status\light-status-app\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
-com.example.lightstatus.test.app-mergeDebugAndroidTestResources-3 C:\Users\PC\Desktop\projects\light-status\light-status-app\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
-com.example.lightstatus.test.app-debugAndroidTest-4 C:\Users\PC\Desktop\projects\light-status\light-status-app\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
