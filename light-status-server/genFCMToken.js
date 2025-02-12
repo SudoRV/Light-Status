@@ -37,10 +37,16 @@ app.get("/wakeup", (req, res) => {
 
 
 //push notification to device directly server to server
-app.get("/push", async (req, res) => {    
+app.post("/push", async (req, res) => {    
     const { light_status, feed_time } = req.body;
     const lightStatus = light_status ? "Light Chale Gayi Bro" : "Light Aagyi Bro";
+    const feedTime = Date.now();
     const access_token_data = await refreshToken();
+    
+    lightStatus = {
+        status: light_status ? "Off" : "On",
+        time: feedTime
+    }
   
     const payload = { 
         message:{
@@ -51,7 +57,7 @@ app.get("/push", async (req, res) => {
             },
             data:{
                 'light_status': lightStatus,
-                'feed_time': Date.now(),
+                'feed_time': feedTime,
                 'server_status': 'Awake',
                 'server_startime': serverStartTime.toString()                 
             }
