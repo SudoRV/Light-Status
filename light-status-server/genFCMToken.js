@@ -39,7 +39,7 @@ app.get("/wakeup", (req, res) => {
 //push notification to device directly server to server
 app.post("/push", async (req, res) => {    
     const { light_status, feed_time } = req.body;
-    const nessage = light_status ? "Light Chale Gayi Bro" : "Light Aagyi Bro";
+    const message = light_status ? "Light Chale Gayi Bro" : "Light Aagyi Bro";
     const feedTime = Date.now();
     const access_token_data = await refreshToken();
     
