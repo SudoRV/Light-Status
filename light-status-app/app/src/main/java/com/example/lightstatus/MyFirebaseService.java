@@ -21,6 +21,11 @@ import com.google.androidbrowserhelper.locationdelegation.PermissionRequestActiv
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Map;
+
 public class MyFirebaseService extends FirebaseMessagingService {
 
     private static final String CHANNEL_ID = "FCM_Notifications";
@@ -31,17 +36,25 @@ public class MyFirebaseService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        Log.d("FCM", "Message Received: " + remoteMessage.getData().toString());
-        Toast.makeText(this, remoteMessage.getData().toString(), Toast.LENGTH_SHORT).show();
+        Log.d("FCM", "Message Received: " + remoteMessage.getNotification().getBody());
 
         if (remoteMessage.getNotification() != null) {
             String title = remoteMessage.getNotification().getTitle();
             String body = remoteMessage.getNotification().getBody();
+            Map<String, String> data = remoteMessage.getData();
             showNotification(title, body);
 
             // Send the message to MainActivity
             Intent intent = new Intent("com.example.lightstatus.NEW_NOTIFICATION");
-            intent.putExtra("message", body);
+            JSONObject notification = new JSONObject();
+            try {
+                notification.put("title",title);
+                notification.put("body", body);
+                notification.put("data", data);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+            intent.putExtra("notification", notification.toString());
             sendBroadcast(intent); // Broadcast the message
         }
     }
@@ -73,21 +86,47 @@ public class MyFirebaseService extends FirebaseMessagingService {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("message", message); // Pass message to MainActivity
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
         // Build the notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.mipmap.icon_notification)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH) // 🚀 High priority for heads-up
-                .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound, vibration, lights
                 .setSound(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.notification_sound))
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true); // Dismiss notification on click
 
-        // Check and request notification permission if not granted
+        //Check and request notification permission if not granted
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            // Delete the existing channel
+            if (manager != null) {
+                manager.deleteNotificationChannel(CHANNEL_ID);
+            }
+            // Recreate the channel with updated settings
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Push Notifications",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.notification_sound);
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+            channel.setSound(soundUri, audioAttributes);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
 

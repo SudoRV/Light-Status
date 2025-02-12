@@ -1,9 +1,12 @@
 package com.example.lightstatus;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -53,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_NAME = "FCM_PREF";
     private static final String TOKEN_KEY = "fcm_token";
 
+    //broadcast listener for light status
+    private BroadcastReceiver lightStatusReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +75,31 @@ public class MainActivity extends AppCompatActivity {
         server_status = findViewById(R.id.server_status);
         server_uptime_label = findViewById(R.id.server_uptime_label);
         server_uptime = findViewById(R.id.server_uptime);
+
+        //receive the notification
+        lightStatusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("com.example.lightstatus.NEW_NOTIFICATION".equals(intent.getAction())) {
+                    String notification = intent.getStringExtra("notification");
+                    Log.d("fcm-msg", notification);
+                    JSONObject notificationObj;
+                    try {
+                        notificationObj = new JSONObject(notification);
+                        JSONObject data = new JSONObject(String.valueOf(new JSONObject(notificationObj.getString("data"))));
+
+                        updateStatus(light_status, light_uptime, light_uptime_label, data.getString("light_status"), Long.parseLong(data.getString("feed_time")));
+                        updateStatus(server_status, server_uptime, server_uptime_label, "Awake", Long.parseLong(data.getString("server_startime")));
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        };
+        
+        // Register Receiver
+        IntentFilter filter = new IntentFilter("com.example.lightstatus.NEW_NOTIFICATION");
+        registerReceiver(lightStatusReceiver, filter);
 
         sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         // Check if token already exists
@@ -197,11 +228,8 @@ public class MainActivity extends AppCompatActivity {
                         String serverStatus = result.getString("server_status");
                         long serverStartTime = result.getLong("server_startime");
 
-                        long lightElapsedSeconds = (currentTime - lightFeedTime) / 1000;
-                        long serverElapsedSeconds = (currentTime - serverStartTime) / 1000;
-
-                        updateStatus(lightStatusView, lightUptimeView, lightUptimeLabel, lightStatus, lightFeedTime, lightElapsedSeconds);
-                        updateStatus(serverStatusView, serverUptimeView, serverUptimeLabel, serverStatus, serverStartTime, serverElapsedSeconds);
+                        updateStatus(lightStatusView, lightUptimeView, lightUptimeLabel, lightStatus, lightFeedTime);
+                        updateStatus(serverStatusView, serverUptimeView, serverUptimeLabel, serverStatus, serverStartTime);
 
                     } catch (JSONException e) {
                         Log.e("fetch-error", "JSON Parsing Error: " + e.getMessage());
@@ -226,11 +254,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateStatus(TextView statusView, TextView uptimeView, TextView uptimeLabel, String status, long startTime, long elapsedSeconds) {
+    private void updateStatus(TextView statusView, TextView uptimeView, TextView uptimeLabel, String status, long startTime) {
         statusView.setText(status);
         statusView.setTextColor(getResources().getColor(R.color.on_status));
         uptimeLabel.setText(status.equals("On") || status.equals("Awake") ? "Uptime : " : "Downtime : ");
         uptimeView.setTextColor(getResources().getColor(R.color.uptime));
+
+        long elapsedSeconds = (currentTime - startTime) / 1000;
         uptimeView.setText(formatDuration(elapsedSeconds));
         updateUptimePeriodically(startTime, uptimeView);
     }
