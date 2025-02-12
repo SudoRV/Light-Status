@@ -27,33 +27,17 @@ const serviceAccount = {
     "client_email": env.CLIENT_EMAIL
 };
 
+
+
 // Wake up token server
 app.get("/wakeup", (req, res) => {
     console.log("Waking up");
     res.status(200).send("Haaahhh... I Woke Up");
 });
 
-// Get JWT access token
-app.get("/get/access-token", async (req, res) => {
-    //get and set light status 
-    const light_status = req.query['light-status'];
-    
-    if(light_status == "On" || light_status == "Off"){
-        lightStatus = {
-            status: light_status,
-            time: Date.now()
-        }
-    }
-    
-    console.log(`light status updated to : ${light_status}`)
-       
-    //send token
-    const access_token_data = await refreshToken();
-    res.status(200).json({ 'access_token': access_token_data.access_token, 'server_startime':serverStartTime, 'feed_time': lightStatus.time, 'light_status': lightStatus.status });
-});
 
 //push notification to device directly server to server
-app.get("/push", async (req, res) => {    
+app.post("/push", async (req, res) => {    
     const { light_status, feed_time } = req.body;
     const lightStatus = light_status ? "Light Aagyi Bro" : "Light Chale Gayi Bro";
     const access_token_data = await refreshToken();
@@ -74,26 +58,10 @@ app.get("/push", async (req, res) => {
         }
     }  
     
-    await pushMsg(fcm_url, access_token_data.access_token, payload);
+    const { http_code, response } = await pushMsg(fcm_url, access_token_data.access_token, payload);
+    res.json(http_code).json(response);
 })
 
-// Set light status
-app.post("/light-status", (req, res) => {
-    const { light_status } = req.body;
-    
-    console.log(light_status,req.body)
-
-    if (light_status === "On" || light_status === "Off") {
-        lightStatus = {
-            status: light_status,
-            time: Date.now() // Store the time of status change
-        };
-        console.log(`Light status updated to: ${light_status}`);
-        res.status(200).json({ message: "Light status updated successfully." });
-    } else {
-        res.status(400).json({ error: "Invalid light status. Use 'On' or 'Off'." });
-    }
-});
 
 // Get current light and system status
 app.get("/system-status", (req, res) => { 
@@ -240,7 +208,9 @@ async function pushMsg(url, accessToken, payload) {
         });
 
         console.log('Notification sent successfully:', response.data);
+        return { http_code:200, response: response.data};
     } catch (error) {
         console.error('FCM Error:', error.response.data);
+        return { http_code:200, response: error.response.data};
     }
 }
