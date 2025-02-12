@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="downtime">#FF2929</color>
+    <color name="icon_notification_background">#232222</color>
+    <color name="off_status">#FF2929</color>
+    <color name="on_status">#1CFA52</color>
+    <color name="uptime">#4DB8FF</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">Light Status</string>
+    <string name="gcm_defaultSenderId" translatable="false">138858114707</string>
+    <string name="google_api_key" translatable="false">AIzaSyACAOov9mfEzmzR8-6HpRUKXB-e1cmMtF4</string>
+    <string name="google_app_id" translatable="false">1:138858114707:android:62d3f22e40441562bda766</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyACAOov9mfEzmzR8-6HpRUKXB-e1cmMtF4</string>
+    <string name="google_storage_bucket" translatable="false">light-status-41588.firebasestorage.app</string>
+    <string name="project_id" translatable="false">light-status-41588</string>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">#E0E0E0</item>
+    </style>
+    <style name="Base.Theme.LightStatus" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        
+    </style>
+    <style name="Theme.LightStatus" parent="Base.Theme.LightStatus"/>
+</resources>
