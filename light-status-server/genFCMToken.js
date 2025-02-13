@@ -37,7 +37,7 @@ app.get("/wakeup", (req, res) => {
 
 
 //push notification to device directly server to server
-app.get("/push", async (req, res) => {    
+app.post("/push", async (req, res) => {    
     const { light_status } = req.body;
     const message = light_status ? "Light Chale Gyi Bro" : "Light Aagyi Bro";
     const feedTime = Date.now();
@@ -53,17 +53,19 @@ app.get("/push", async (req, res) => {
             token: env.DEVICE_TOKEN,
             notification: {
                 title: "ESP8266",
-                body: message,                                            
+                body: message,                                        
             },           
             data:{
                 'light_status': lightStatus.status,
                 'feed_time': feedTime.toString(),
                 'server_status': 'Awake',
                 'server_startime': serverStartTime.toString()                 
-            },
+            }, 
             android:{
-                'priority':'high',                               
-            }
+                notification: {
+                    'sound': 'notification_sound.mp3'
+                }
+            }          
         }
     }  
     
@@ -83,6 +85,18 @@ app.get("/system-status", (req, res) => {
     console.log(data)
     res.status(200).json(data);                       
 });
+
+app.post("/save-fcm-token",(req, res)=>{
+    const { device_token } = req.body;
+    console.log(device_token);   
+    env.DEVICE_TOKEN = device_token; 
+    
+    //save token to .env file 
+    updateDeviceToken(device_token);
+        
+    res.status(200).json({response: "Token Saved Successfully"});
+})
+
 
 // Start the server
 const port = 8000;
@@ -224,3 +238,30 @@ async function pushMsg(url, accessToken, payload) {
         return { http_code:200, response: error.response.data};
     }
 }
+
+
+//save token to .env
+function updateDeviceToken(newValue) {
+    const envFilePath = '.env';
+
+    // Read existing .env content
+    let envContent = fs.existsSync(envFilePath) ? fs.readFileSync(envFilePath, 'utf8') : '';
+
+    // Use regex to find and replace DEVICE_TOKEN
+    const regex = /^DEVICE_TOKEN.*=.*$/m;
+    if (regex.test(envContent)) {
+        // Replace existing DEVICE_TOKEN
+        envContent = envContent.replace(regex, `DEVICE_TOKEN=${newValue}`);
+    } else {
+        // Append new DEVICE_TOKEN if not found
+        envContent += `\nDEVICE_TOKEN=${newValue}\n`;
+    }
+
+    // Write updated content back to .env file
+    fs.writeFileSync(envFilePath, envContent);
+
+    console.log(`new device token updated successfully in .env file!`);
+}
+
+// Example usage
+updateDeviceToken("your-new-device-token");
