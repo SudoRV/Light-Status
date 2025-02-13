@@ -63,7 +63,7 @@ app.get("/push", async (req, res) => {
                 'server_startime': serverStartTime.toString()                 
             },
             android:{
-                'priority':'high'
+                'priority':'high',
                 'sound':'notification_sound'
             }
         }
