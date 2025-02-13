@@ -43,9 +43,31 @@ app.get("/wakeup", (req, res) => {
     res.status(200).send("Haaahhh... I Woke Up");
 });
 
+// Get current light and system status
+app.get("/system-status", (req, res) => { 
+    const data = {
+        light_status: lightStatus.status,
+        feed_time: lightStatus.time,
+        server_status:"Awake",
+        server_startime: serverStartTime
+    }   
+    console.log(data)
+    res.status(200).json(data);                       
+});
+
+app.post("/save-fcm-token",(req, res)=>{
+    const { device_token } = req.body;
+    console.log(device_token);   
+    env.DEVICE_TOKEN = device_token; 
+    
+    //save token to .env file 
+    updateDeviceToken(device_token);
+        
+    res.status(200).json({response: "Token Saved Successfully"});
+})
 
 //push notification to device directly server to server
-app.get("/push", async (req, res) => {    
+app.post("/push", async (req, res) => {    
     const { light_status } = req.body;
     const message = light_status ? "Light Chale Gyi Bro" : "Light Aagyi Bro";
     const feedTime = Date.now();
@@ -81,30 +103,6 @@ app.get("/push", async (req, res) => {
     
     const { http_code, response } = await pushMsg(fcm_url, access_token_data.access_token, payload);
     res.status(http_code).json(response);
-})
-
-
-// Get current light and system status
-app.get("/system-status", (req, res) => { 
-    const data = {
-        light_status: lightStatus.status,
-        feed_time: lightStatus.time,
-        server_status:"Awake",
-        server_startime: serverStartTime
-    }   
-    console.log(data)
-    res.status(200).json(data);                       
-});
-
-app.post("/save-fcm-token",(req, res)=>{
-    const { device_token } = req.body;
-    console.log(device_token);   
-    env.DEVICE_TOKEN = device_token; 
-    
-    //save token to .env file 
-    updateDeviceToken(device_token);
-        
-    res.status(200).json({response: "Token Saved Successfully"});
 })
 
 
