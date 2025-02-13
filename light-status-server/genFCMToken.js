@@ -53,9 +53,8 @@ app.get("/push", async (req, res) => {
             token: env.DEVICE_TOKEN,
             notification: {
                 title: "ESP8266",
-                body: message,  
-                sound: "notification_sound"            
-            },
+                body: message,                                            
+            },           
             data:{
                 'light_status': lightStatus.status,
                 'feed_time': feedTime.toString(),
@@ -63,8 +62,7 @@ app.get("/push", async (req, res) => {
                 'server_startime': serverStartTime.toString()                 
             },
             android:{
-                'priority':'high',
-                'sound':'notification_sound'
+                'priority':'high',                               
             }
         }
     }  
