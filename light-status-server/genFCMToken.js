@@ -16,10 +16,18 @@ let isTokenRefreshing = false;
 // Track server start time
 const serverStartTime = Date.now();
 // Light status tracking
-let lightStatus = {
-    status: "Off", 
-    time: Date.now()
-};
+let lightStatus;
+
+try{
+    lightStatus = fs.readFileSync("./data/data.json","utf-8");
+}catch(err){
+    lightStatus = {
+        status: 'Off',
+        time: Date.now()
+    }
+}
+
+console.log(lightStatus)
 
 // Service account
 const serviceAccount = {
@@ -37,7 +45,7 @@ app.get("/wakeup", (req, res) => {
 
 
 //push notification to device directly server to server
-app.post("/push", async (req, res) => {    
+app.get("/push", async (req, res) => {    
     const { light_status } = req.body;
     const message = light_status ? "Light Chale Gyi Bro" : "Light Aagyi Bro";
     const feedTime = Date.now();
@@ -47,6 +55,8 @@ app.post("/push", async (req, res) => {
         status: light_status ? "Off" : "On",
         time: feedTime
     }
+    
+    saveStatus(lightStatus);
   
     const payload = { 
         message:{
@@ -263,5 +273,8 @@ function updateDeviceToken(newValue) {
     console.log(`new device token updated successfully in .env file!`);
 }
 
-// Example usage
-updateDeviceToken("your-new-device-token");
+//save data status locally 
+function saveStatus(data){
+    fs.writeFileSync("./data/data.json",JSON.stringify(data,null,4));
+    console.log("status saved successfully");
+}
