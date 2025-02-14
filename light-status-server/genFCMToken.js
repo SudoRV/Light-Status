@@ -28,7 +28,7 @@ try{
 }
 
 //send first notification for preparation 
-pushMsg(getPayload(lightStatus.status,"Server", "Light " + (lightStatus.status=="On"?"":"Nhi") + "Hai Bro"));
+pushMsg(getPayload(lightStatus.status,"Server", "Light " + (lightStatus.status=="On"?"":"Nhi ") + "Hai Bro"));
 
 // Service account
 const serviceAccount = {
@@ -69,13 +69,13 @@ app.post("/save-fcm-token",(req, res)=>{
 
 //push notification to device directly server to server
 app.post("/push", async (req, res) => {    
-    const { light_status } = req.body;      
+    const { light_status } = req.body;          
     lightStatus = {
-        status: light_status ? "Off" : "On",
+        status: (light_status==1 ? "Off" : "On"),
         time: Date.now()   
     }    
     saveStatus(lightStatus);
-    
+    console.log(lightStatus)
     const payload = getPayload(light_status,"ESP8266")
     const { http_code, response } = await pushMsg(payload);
     res.status(http_code).json(response);
@@ -256,7 +256,7 @@ function saveStatus(data){
 }
 
 function getPayload(status, title, body){
-    const message = status ? "Light Chale Gyi Bro" : "Light Aagyi Bro";
+    const message = (status==1) ? "Light Chale Gyi Bro" : "Light Aagyi Bro";
     const feedTime = lightStatus.time;    
   
     const payload = { 
