@@ -4,7 +4,22 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const env = process.env;
+
+const uri = "mongodb+srv://sudorv-light:rahul1992@light-status.kilaj.mongodb.net/?retryWrites=true&w=majority&appName=light-status";
+
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true, 
+    useUnifiedTopology:true   
+  },  
+})
+
+const db = client.db("light-data");
+const table = db.collection("light-status");
 
 const app = express();
 app.use(express.json());
@@ -18,17 +33,26 @@ const serverStartTime = Date.now();
 // Light status tracking
 let lightStatus;
 
-try{
-    lightStatus = JSON.parse(fs.readFileSync("./data/data.json","utf-8"));
-}catch(err){
-    lightStatus = {
-        status: 'Off',
-        time: Date.now()
+async function readLightStatus(){
+    try{
+        lightStatus = JSON.parse(fs.readFileSync("./data/data.json","utf-8"));        
+        lightStatus = await table.findOne({}, {sort: {time: -1}}); 
+                             
+        //send first notification for preparation 
+pushMsg(getPayload(lightStatus.status,"Server", "Light " + (lightStatus.status=="On"?"":"Nhi ") + "Hai Bro"));
+        console.log(lightStatus)        
+        return lightStatus;
+    
+    }catch(err){
+        lightStatus = {
+            status: 'Off',
+            time: Date.now()
+        }
     }
 }
+readLightStatus();
 
-//send first notification for preparation 
-pushMsg(getPayload(lightStatus.status,"Server", "Light " + (lightStatus.status=="On"?"":"Nhi ") + "Hai Bro"));
+
 
 // Service account
 const serviceAccount = {
@@ -74,8 +98,11 @@ app.post("/push", async (req, res) => {
         status: (light_status==1 ? "Off" : "On"),
         time: Date.now()   
     }    
-    saveStatus(lightStatus);
+    saveStatus(lightStatus);   
+    table.insertOne({status: lightStatus.status, time: lightStatus.time})
+    
     console.log(lightStatus)
+    
     const payload = getPayload(light_status,"ESP8266")
     const { http_code, response } = await pushMsg(payload);
     
