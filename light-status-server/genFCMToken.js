@@ -78,6 +78,7 @@ app.post("/push", async (req, res) => {
     console.log(lightStatus)
     const payload = getPayload(light_status,"ESP8266")
     const { http_code, response } = await pushMsg(payload);
+    
     res.status(http_code).json(response);
 })
 
@@ -218,10 +219,10 @@ async function pushMsg(payload) {
         });
 
         console.log('Notification sent successfully:', response.data);
-        return { http_code:200, response: response.data};
+        return { http_code:200, 'response': response.data};
     } catch (error) {
         console.error('FCM Error:', error.response.data);
-        return { http_code:200, response: error.response.data};
+        return { http_code:200, response: error.response.data };
     }
 }
 
