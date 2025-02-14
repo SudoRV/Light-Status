@@ -68,7 +68,7 @@ app.post("/save-fcm-token",(req, res)=>{
 })
 
 //push notification to device directly server to server
-app.get("/push", async (req, res) => {    
+app.post("/push", async (req, res) => {    
     const { light_status } = req.body;      
     lightStatus = {
         status: light_status ? "Off" : "On",
